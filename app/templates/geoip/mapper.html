@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}GeoIP Mapper — Eternal Vault{% endblock %}
+{% block page_title %}GeoIP & Visualisation Cartographique{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --primary-glow: rgba(79, 70, 229, 0.2);
+        --bg-input: #0f172a;
+        --border-focus: #6366f1;
+        --text-main: #f8fafc;
+    }
+
+    .geoip-layout { 
+        display: grid; 
+        grid-template-columns: 380px 1fr; 
+        gap: 24px; 
+    }
+    
+    @media (max-width: 1024px) { 
+        .geoip-layout { grid-template-columns: 1fr; } 
+    }
+
+    /* Carte Leaflet */
+    #map { 
+        height: 520px; 
+        width: 100%; 
+        border-radius: var(--radius-md); 
+        border: 1px solid var(--border-color); 
+        z-index: 1; 
+    }
+
+    /* Formulaire de recherche */
+    .geoip-form { margin-top: 1.25rem; width: 100%; }
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .form-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .input-wrapper:focus-within {
+        border-color: var(--border-focus);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        pointer-events: none;
+    }
+
+    .form-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        padding: 10px 12px 10px 40px;
+        color: var(--text-main);
+        font-size: 0.9rem;
+        font-family: inherit;
+    }
+
+    .form-input::placeholder { color: var(--text-muted); opacity: 0.7; }
+
+    .badge-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 6px 10px;
+        border-radius: 6px;
+        margin-right: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .badge-btn:hover { background: rgba(255, 255, 255, 0.18); color: var(--text-main); }
+
+    .btn-submit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: var(--primary);
+        color: #ffffff;
+        border: none;
+        border-radius: calc(var(--radius-sm) - 2px);
+        padding: 9px 18px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn-submit:hover { background-color: var(--primary-hover); }
+    .btn-submit:active { transform: scale(0.98); }
+
+    /* Alertes et notifications */
+    .vault-alert { 
+        display: flex; 
+        align-items: flex-start; 
+        gap: 12px; 
+        padding: 12px 14px; 
+        border-radius: var(--radius-sm); 
+        margin-top: 15px; 
+        font-size: 12px; 
+        font-weight: 600; 
+        line-height: 1.4; 
+    }
+    .vault-alert-warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #b45309; }
+    .vault-alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #b91c1c; }
+    .vault-alert-icon { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+
+    /* Grille de métadonnées */
+    .info-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 18px; }
+    .info-item { padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: #ffffff; }
+    .info-label { display: block; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-val { display: block; margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--text-primary); font-family: monospace; word-break: break-all; }
+
+    @media (max-width: 480px) {
+        .input-wrapper { flex-direction: column; align-items: stretch; padding: 8px; gap: 8px; }
+        .input-icon { top: 18px; }
+        .form-input { padding-right: 12px; }
+        .badge-btn { align-self: flex-end; margin-right: 0; }
+        .btn-submit { width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="geoip-layout">
+    <!-- RECHERCHE & DÉTAILS -->
+    <div>
+        <div class="card">
+            <div class="card-top" style="margin-bottom: 12px;">
+                <div class="card-icon green"><i class="fa-solid fa-earth-americas"></i></div>
+            </div>
+            <h3>Localiser une IP</h3>
+            <p>Saisissez une IP publique, un nom de domaine, ou cliquez sur "Mon IP".</p>
+
+            <form id="geoipForm" class="geoip-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label class="form-label" for="ipInput">Adresse IP ou Nom de domaine</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-globe input-icon"></i>
+                        <input 
+                            type="text" 
+                            id="ipInput" 
+                            class="form-input" 
+                            placeholder="ex: 8.8.8.8 ou github.com"
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+                        <button type="button" id="btnMyIp" class="badge-btn" title="Utiliser mon IP publique">
+                            Mon IP
+                        </button>
+                        <button type="submit" id="btnLookup" class="btn-submit">
+                            <i class="fa-solid fa-magnifying-glass-location" id="btnIcon"></i> 
+                            <span id="btnText">Localiser</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- ZONE D'ALERTE -->
+            <div id="alertBox" class="vault-alert" style="display: none;">
+                <i id="alertIcon" class="fa-solid vault-alert-icon"></i>
+                <span id="alertMessage"></span>
+            </div>
+
+            <!-- RÉSULTATS MÉTADONNÉES -->
+            <div class="info-list" id="infoBox" style="display: none;">
+                <div class="info-item"><span class="info-label">Pays</span><span class="info-val" id="valCountry">-</span></div>
+                <div class="info-item"><span class="info-label">Ville / Région</span><span class="info-val" id="valCity">-</span></div>
+                <div class="info-item"><span class="info-label">FSI / ISP</span><span class="info-val" id="valIsp">-</span></div>
+                <div class="info-item"><span class="info-label">ASN</span><span class="info-val" id="valAs">-</span></div>
+                <div class="info-item" style="grid-column: 1 / -1;"><span class="info-label">Coordonnées</span><span class="info-val" id="valCoords">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARTE INTERACTIVE LEAFLET -->
+    <div class="card" style="padding: 12px;">
+        <div id="map"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialisation de la carte mondiale
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker = null;
+
+    // Affichage des notifications
+    function showAlert(message, type = 'warning') {
+        const alertBox = document.getElementById('alertBox');
+        const alertIcon = document.getElementById('alertIcon');
+        const alertMessage = document.getElementById('alertMessage');
+
+        alertBox.className = `vault-alert vault-alert-${type}`;
+        alertIcon.className = `fa-solid vault-alert-icon ${type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'}`;
+        alertMessage.textContent = message;
+        alertBox.style.display = 'flex';
+    }
+
+    function hideAlert() {
+        document.getElementById('alertBox').style.display = 'none';
+    }
+
+    // Requête API GeoIP
+    async function lookupIP() {
+        const ipInput = document.getElementById('ipInput');
+        const ip = ipInput.value.trim();
+        const btn = document.getElementById('btnLookup');
+        const btnIcon = document.getElementById('btnIcon');
+        const btnText = document.getElementById('btnText');
+
+        hideAlert();
+        
+        btn.disabled = true;
+        btnIcon.className = "fa-solid fa-spinner fa-spin";
+        btnText.textContent = "Recherche...";
+
+        try {
+            const res = await fetch("{{ url_for('geoip.mapper') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip: ip })
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                const d = result.data;
+
+                // Remplissage des données
+                document.getElementById('infoBox').style.display = 'grid';
+                document.getElementById('valCountry').textContent = d.countryCode !== 'LOCAL' ? `${d.country} (${d.countryCode})` : d.country;
+                document.getElementById('valCity').textContent = `${d.city}, ${d.regionName}`;
+                document.getElementById('valIsp').textContent = d.isp;
+                document.getElementById('valAs').textContent = d.as || '-';
+                document.getElementById('valCoords').textContent = `${d.lat}, ${d.lon}`;
+
+                // Gestion IP locale / privée vs IP publique
+                if (d.countryCode === 'LOCAL' || (d.lat === 0 && d.lon === 0)) {
+                    showAlert(`L'adresse IP "${d.query}" est une adresse locale/réservée (LAN/Loopback). Carte non positionnée.`, 'warning');
+                } else {
+                    const latLng = [d.lat, d.lon];
+                    map.setView(latLng, 10);
+
+                    if (marker) map.removeLayer(marker);
+                    marker = L.marker(latLng).addTo(map)
+                        .bindPopup(`<b>${d.query}</b><br>${d.city}, ${d.country}`)
+                        .openPopup();
+                }
+            } else {
+                showAlert(result.error || "Impossible de localiser cette adresse.", 'error');
+            }
+        } catch (err) {
+            showAlert("Erreur réseau ou service indisponible.", 'error');
+        } finally {
+            btn.disabled = false;
+            btnIcon.className = "fa-solid fa-magnifying-glass-location";
+            btnText.textContent = "Localiser";
+        }
+    }
+
+    // Événements
+    document.getElementById('geoipForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        lookupIP();
+    });
+
+    document.getElementById('btnMyIp').addEventListener('click', () => {
+        document.getElementById('ipInput').value = '';
+        lookupIP();
+    });
+
+    // Recherche automatique de l'IP du client au chargement
+    lookupIP();
+});
+</script>
+{% endblock %}

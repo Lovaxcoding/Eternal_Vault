@@ -1,0 +1,546 @@
+{% extends "base.html" %}
+
+{% block title %}Extracteur EXIF & C2PA — Eternal Vault{% endblock %}
+{% block page_title %}Analyseur de Métadonnées EXIF & Provenance C2PA{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .exif-layout {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+        .exif-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Zone Drag and Drop */
+    .drop-zone {
+        border: 2px dashed var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 32px 20px;
+        text-align: center;
+        background: var(--bg-input, #0f172a);
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+        border-color: var(--border-focus, #6366f1);
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .drop-icon {
+        font-size: 2.5rem;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        transition: transform 0.2s;
+    }
+
+    .drop-zone:hover .drop-icon {
+        transform: translateY(-4px);
+        color: var(--primary, #4f46e5);
+    }
+
+    .drop-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .drop-subtitle {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    #fileInput { display: none; }
+
+    /* Aperçu Image */
+    .image-preview-card {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .preview-img {
+        max-width: 100%;
+        max-height: 260px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        object-fit: contain;
+    }
+
+    /* Badges C2PA & Provenance */
+    .badge-c2pa {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    .badge-ai {
+        background: rgba(168, 85, 247, 0.15);
+        color: #a855f7;
+        border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+
+    .badge-authentic {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Bar de téléchargement / Export */
+    .export-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        margin-bottom: 20px;
+    }
+
+    .export-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .export-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-export {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: #ffffff;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-export:hover {
+        border-color: var(--border-focus, #6366f1);
+        color: var(--primary, #4f46e5);
+        transform: translateY(-1px);
+    }
+
+    /* Tableaux de métadonnées */
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+    }
+
+    .meta-card {
+        padding: 16px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        background: #ffffff;
+    }
+
+    .meta-card-title {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .meta-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.825rem;
+    }
+
+    .meta-table tr:not(:last-child) {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .meta-table td {
+        padding: 6px 0;
+        vertical-align: top;
+    }
+
+    .meta-key {
+        font-weight: 600;
+        color: var(--text-muted);
+        width: 40%;
+    }
+
+    .meta-val {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-family: monospace;
+        word-break: break-all;
+    }
+
+    /* Carte GPS */
+    #exifMap {
+        height: 240px;
+        width: 100%;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        margin-top: 10px;
+        z-index: 1;
+    }
+
+    /* Alerte */
+    .vault-alert { 
+        display: flex; 
+        align-items: flex-start; 
+        gap: 12px; 
+        padding: 12px 14px; 
+        border-radius: var(--radius-sm); 
+        margin-top: 15px; 
+        font-size: 12px; 
+        font-weight: 600; 
+    }
+    .vault-alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #b91c1c; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exif-layout">
+    <!-- COLONNE GAUCHE : UPLOAD ET APERÇU -->
+    <div>
+        <div class="card">
+            <div class="card-top" style="margin-bottom: 12px;">
+                <div class="card-icon blue"><i class="fa-solid fa-file-image"></i></div>
+            </div>
+            <h3>Importer une image</h3>
+            <p>Analyse EXIF, C2PA (Content Credentials) et hachages d'intégrité.</p>
+
+            <!-- Zone Dropzone -->
+            <div class="drop-zone" id="dropZone" style="margin-top: 18px;">
+                <i class="fa-solid fa-cloud-arrow-up drop-icon" id="dropIcon"></i>
+                <div class="drop-title" id="dropTitle">Glisser-déposer une image ici</div>
+                <div class="drop-subtitle">JPG, JPEG, PNG, TIFF, WEBP (Max 20 MB)</div>
+                <input type="file" id="fileInput" accept="image/jpeg,image/png,image/tiff,image/webp">
+            </div>
+
+            <!-- Alerte Erreur -->
+            <div id="alertBox" class="vault-alert vault-alert-error" style="display: none;">
+                <i class="fa-solid fa-circle-xmark"></i>
+                <span id="alertMessage"></span>
+            </div>
+
+            <!-- Aperçu de l'image -->
+            <div class="image-preview-card" id="previewContainer" style="display: none;">
+                <img id="imagePreview" class="preview-img" src="" alt="Aperçu">
+            </div>
+        </div>
+    </div>
+
+    <!-- COLONNE DROITE : RÉSULTATS & EXPORTS -->
+    <div>
+        <!-- Message vide au chargement initial -->
+        <div id="emptyState" class="card" style="text-align: center; padding: 48px 20px;">
+            <i class="fa-solid fa-fingerprint" style="font-size: 3rem; color: var(--text-muted); opacity: 0.4; margin-bottom: 16px;"></i>
+            <h3>Aucune métadonnée affichée</h3>
+            <p>Importez une image pour extraire les métadonnées EXIF, la traçabilité C2PA (IA) et les signatures numériques.</p>
+        </div>
+
+        <!-- Section Résultats (masquée par défaut) -->
+        <div id="resultsContainer" style="display: none;">
+            
+            <!-- Barre d'Exportation -->
+            <div class="export-bar">
+                <span class="export-title"><i class="fa-solid fa-download"></i> Exporter le rapport :</span>
+                <div class="export-actions">
+                    <button type="button" class="btn-export" onclick="downloadExport('json')"><i class="fa-solid fa-code"></i> JSON</button>
+                    <button type="button" class="btn-export" onclick="downloadExport('xml')"><i class="fa-solid fa-file-code"></i> XML</button>
+                    <button type="button" class="btn-export" onclick="downloadExport('txt')"><i class="fa-solid fa-file-lines"></i> TXT</button>
+                    <button type="button" class="btn-export" onclick="downloadExport('csv')"><i class="fa-solid fa-file-csv"></i> CSV</button>
+                </div>
+            </div>
+
+            <!-- Grille de Métadonnées -->
+            <div class="meta-grid">
+                
+                <!-- 1. Provenance C2PA / Content Credentials (NOUVEAU) -->
+                <div class="meta-card" id="c2paCard" style="display: none; grid-column: 1 / -1;">
+                    <div class="meta-card-title"><i class="fa-solid fa-shield-halved"></i> Provenance & Content Credentials (C2PA)</div>
+                    <div id="c2paBadgeContainer"></div>
+                    <table class="meta-table">
+                        <tbody id="tableC2pa"></tbody>
+                    </table>
+                </div>
+
+                <!-- 2. Informations Fichier -->
+                <div class="meta-card">
+                    <div class="meta-card-title"><i class="fa-solid fa-circle-info"></i> Fichier</div>
+                    <table class="meta-table">
+                        <tbody id="tableFileInfo"></tbody>
+                    </table>
+                </div>
+
+                <!-- 3. Empreintes Cryptographiques (NOUVEAU) -->
+                <div class="meta-card" id="hashesCard">
+                    <div class="meta-card-title"><i class="fa-solid fa-hashtag"></i> Empreintes Hachage</div>
+                    <table class="meta-table">
+                        <tbody id="tableHashes"></tbody>
+                    </table>
+                </div>
+
+                <!-- 4. Appareil Photo / Générateur IA -->
+                <div class="meta-card" id="cameraCard">
+                    <div class="meta-card-title"><i class="fa-solid fa-camera"></i> Appareil / Générateur</div>
+                    <table class="meta-table">
+                        <tbody id="tableCamera"></tbody>
+                    </table>
+                </div>
+
+                <!-- 5. Réglages de Prise de Vue -->
+                <div class="meta-card" id="settingsCard">
+                    <div class="meta-card-title"><i class="fa-solid fa-sliders"></i> Réglages</div>
+                    <table class="meta-table">
+                        <tbody id="tableSettings"></tbody>
+                    </table>
+                </div>
+
+                <!-- 6. Données GPS (si présentes) -->
+                <div class="meta-card" id="gpsCard" style="display: none; grid-column: 1 / -1;">
+                    <div class="meta-card-title"><i class="fa-solid fa-location-dot"></i> Localisation GPS</div>
+                    <table class="meta-table">
+                        <tbody id="tableGps"></tbody>
+                    </table>
+                    <div id="exifMap"></div>
+                </div>
+
+            </div>
+
+            <!-- 7. Tags Bruts / Manifeste JUMBF -->
+            <div class="meta-card" style="margin-top: 16px;">
+                <div class="meta-card-title"><i class="fa-solid fa-tags"></i> Autres Tags & Métadonnées Brutes</div>
+                <table class="meta-table">
+                    <tbody id="tableRawTags"></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const dropTitle = document.getElementById('dropTitle');
+    const dropIcon = document.getElementById('dropIcon');
+    const alertBox = document.getElementById('alertBox');
+    const alertMessage = document.getElementById('alertMessage');
+    
+    let currentExifData = null;
+    let map = null;
+    let marker = null;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) uploadFile(files[0]);
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) uploadFile(fileInput.files[0]);
+    });
+
+    function showError(msg) {
+        alertMessage.textContent = msg;
+        alertBox.style.display = 'flex';
+    }
+
+    function hideError() {
+        alertBox.style.display = 'none';
+    }
+
+    async function uploadFile(file) {
+        hideError();
+        const formData = new FormData();
+        formData.append('file', file);
+
+        dropIcon.className = "fa-solid fa-spinner fa-spin drop-icon";
+        dropTitle.textContent = "Analyse EXIF & C2PA en cours...";
+
+        try {
+            const res = await fetch("{{ url_for('exif.handle_upload') }}", {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await res.json();
+
+            if (result.success) {
+                currentExifData = result.data;
+                document.getElementById('imagePreview').src = result.image_url;
+                document.getElementById('previewContainer').style.display = 'block';
+
+                renderExifData(result.data);
+            } else {
+                showError(result.error || "Erreur lors du traitement du fichier.");
+            }
+        } catch (err) {
+            showError("Erreur réseau lors de l'envoi de l'image.");
+        } finally {
+            dropIcon.className = "fa-solid fa-cloud-arrow-up drop-icon";
+            dropTitle.textContent = "Glisser-déposer une autre image";
+        }
+    }
+
+    function renderExifData(data) {
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('resultsContainer').style.display = 'block';
+
+        // 1. C2PA / Content Credentials
+        const c2paCard = document.getElementById('c2paCard');
+        const badgeContainer = document.getElementById('c2paBadgeContainer');
+        if (data.c2pa && Object.keys(data.c2pa).length > 0) {
+            c2paCard.style.display = 'block';
+            populateTable('tableC2pa', data.c2pa);
+
+            const isAI = data.c2pa.digital_source_type === 'trainedAlgorithmicMedia' || 
+                         (data.c2pa.generator && data.c2pa.generator.toLowerCase().includes('gpt'));
+
+            if (isAI) {
+                badgeContainer.innerHTML = `<span class="badge-c2pa badge-ai"><i class="fa-solid fa-robot"></i> Généré par IA (${data.c2pa.generator || 'Algorithmique'})</span>`;
+            } else {
+                badgeContainer.innerHTML = `<span class="badge-c2pa badge-authentic"><i class="fa-solid fa-certificate"></i> Média Certifié C2PA</span>`;
+            }
+        } else {
+            c2paCard.style.display = 'none';
+        }
+
+        // 2. Fichier & Hachages
+        populateTable('tableFileInfo', data.file_info);
+        populateTable('tableHashes', data.hashes);
+
+        // 3. Appareil & Réglages
+        populateTable('tableCamera', data.camera);
+        populateTable('tableSettings', data.image_settings);
+        populateTable('tableRawTags', data.raw_tags);
+
+        // 4. GPS
+        const gpsCard = document.getElementById('gpsCard');
+        if (data.gps && data.gps.latitude && data.gps.longitude) {
+            gpsCard.style.display = 'block';
+            populateTable('tableGps', data.gps);
+
+            const lat = parseFloat(data.gps.latitude);
+            const lon = parseFloat(data.gps.longitude);
+
+            if (!map) {
+                map = L.map('exifMap').setView([lat, lon], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 18,
+                    attribution: '&copy; OpenStreetMap'
+                }).addTo(map);
+            } else {
+                map.setView([lat, lon], 12);
+            }
+
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lon]).addTo(map)
+                .bindPopup(`<b>Position photo</b><br>${lat}, ${lon}`)
+                .openPopup();
+                
+            setTimeout(() => map.invalidateSize(), 200);
+        } else {
+            gpsCard.style.display = 'none';
+        }
+    }
+
+    function populateTable(elementId, obj) {
+        const tbody = document.getElementById(elementId);
+        tbody.innerHTML = '';
+
+        if (!obj || Object.keys(obj).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" style="color:var(--text-muted); font-style:italic;">Aucune donnée</td></tr>';
+            return;
+        }
+
+        for (const [key, val] of Object.entries(obj)) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="meta-key">${key}</td>
+                <td class="meta-val">${val}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+    }
+
+    window.downloadExport = async function(formatType) {
+        if (!currentExifData) return;
+
+        try {
+            const res = await fetch(`/exif/export/${formatType}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentExifData)
+            });
+
+            if (!res.ok) throw new Error("Erreur d'exportation");
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            const originalName = currentExifData.file_info?.filename || "export_metadata";
+            const baseName = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+            a.download = `${baseName}_metadata.${formatType}`;
+            
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            showError("Échec du téléchargement du fichier d'export.");
+        }
+    };
+});
+</script>
+{% endblock %}
