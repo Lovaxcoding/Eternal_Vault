@@ -3540,3 +3540,107 @@ a {
             center;
     }
 }
+
+/* =========================================================
+   ANIMATIONS & TRANSITIONS
+========================================================== */
+
+/* Keyframes */
+@keyframes pulseFast {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.92); }
+}
+
+@keyframes pulseSlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes floatSlow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.25; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(1.08); }
+}
+
+/* Classes d'animations */
+.animate-pulse-fast {
+    animation: pulseFast 1.8s infinite ease-in-out;
+}
+
+.animate-pulse-slow {
+    animation: pulseSlow 3s infinite ease-in-out;
+}
+
+.animate-float {
+    animation: floatSlow 4s infinite ease-in-out;
+}
+
+.animate-spin-slow {
+    animation: spinSlow 20s linear infinite;
+}
+
+.animate-spin-reverse {
+    animation: spinReverse 25s linear infinite;
+}
+
+.animate-glow {
+    animation: glowPulse 6s infinite ease-in-out;
+}
+
+.delay-2000 {
+    animation-delay: 2s;
+}
+
+/* Transitions & Effets au survol */
+.hover-lift {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+}
+
+.landing-btn {
+    transition: all 0.25s ease;
+}
+
+.landing-btn-primary:hover .btn-arrow {
+    transform: translateX(4px);
+}
+
+.btn-arrow {
+    transition: transform 0.25s ease;
+}
+
+.landing-feature-card {
+    transition: all 0.3s ease;
+}
+
+.landing-feature-card:hover .feature-arrow {
+    transform: translate(3px, -3px);
+    color: #f8fafc;
+}
+
+.feature-arrow {
+    transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.stat-dot.green {
+    color: #10b981;
+    font-size: 0.5rem;
+    vertical-align: middle;
+}

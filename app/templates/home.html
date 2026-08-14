@@ -37,7 +37,7 @@
         </div>
         <div>
             <span>OUTILS DISPONIBLES</span>
-            <strong>1</strong>
+            <strong>2</strong>
         </div>
     </div>
 
@@ -70,7 +70,7 @@
         <span class="dashboard-section-kicker">TOOLKIT</span>
         <h2>Outils de sécurité</h2>
     </div>
-    <span class="module-count">1 actif · 3 à venir</span>
+    <span class="module-count">2 actifs · 2 à venir</span>
 </div>
 
 <div class="modules-grid">
@@ -147,25 +147,28 @@
     </article>
 
     <!-- =====================================================
-         SIEM
+         SIEM (MAINTENANT ACTIF)
     ====================================================== -->
-    <article class="card tool-card">
+    <article class="card tool-card active-tool">
         <div class="card-top">
             <div class="card-icon purple">
                 <i class="fa-solid fa-terminal"></i>
             </div>
-            <span class="badge badge-muted">À venir</span>
+            <span class="badge">Disponible</span>
         </div>
 
         <div class="card-body">
             <span class="tool-category">BLUE TEAM</span>
-            <h3>Analyseur de Logs SIEM</h3>
-            <p>Importez, filtrez et analysez vos journaux d'événements réseau et système depuis une interface centralisée.</p>
+            <h3>Analyseur de Logs Mini-SIEM</h3>
+            <p>Importez, filtrez et analysez vos journaux d'événements réseau pour détecter les anomalies en temps réel.</p>
         </div>
 
         <div class="card-footer">
             <span>Module 04</span>
-            <span class="tool-disabled">Bientôt disponible</span>
+            <a href="{{ url_for('logs.logs_page') }}" class="tool-link">
+                Ouvrir
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
         </div>
     </article>
 </div>

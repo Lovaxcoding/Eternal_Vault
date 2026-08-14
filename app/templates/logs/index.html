@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+
+{% block title %}Analyse de Logs · Eternal Vault{% endblock %}
+{% block page_title %}Analyseur de Logs Web{% endblock %}
+
+{% block extra_css %}
+<!-- Tailwind CSS via CDN pour le layout dynamique -->
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Zone de dépôt / Upload -->
+    <section class="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
+        <form id="uploadForm" class="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 hover:border-zinc-900 bg-zinc-50/50 rounded-lg p-8 cursor-pointer transition-colors duration-200">
+            <input type="file" id="logFile" accept=".log,.txt" class="hidden" required />
+            <i class="fa-solid fa-file-code text-4xl text-zinc-400 mb-3"></i>
+            <p class="text-sm font-semibold text-zinc-900 mb-1" id="fileNameDisplay">
+                Sélectionnez ou glissez-déposez un fichier de log (.log, .txt)
+            </p>
+            <p class="text-xs text-zinc-500">Formats pris en charge : Nginx / Apache Combined Log Format</p>
+
+            <button type="submit" id="submitBtn" class="mt-4 px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Lancer l'analyse</span>
+            </button>
+        </form>
+    </section>
+
+    <!-- Indicateur de chargement -->
+    <div id="loader" class="hidden text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-zinc-900 border-t-transparent"></div>
+        <p class="mt-3 text-zinc-600 text-sm font-medium">Traitement et parsing du fichier de log en cours...</p>
+    </div>
+
+    <!-- Section des résultats -->
+    <div id="resultsSection" class="hidden space-y-6">
+
+        <!-- En-tête des résultats et boutons d'export -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-4">
+            <div>
+                <h2 class="text-xl font-bold text-zinc-900">Rapport d'Analyse</h2>
+                <p class="text-xs text-zinc-500">Synthèse des événements et métriques d'accès</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="exportReport('html')" class="px-4 py-2 bg-white hover:bg-zinc-50 text-zinc-800 text-sm font-semibold border border-zinc-300 rounded-lg shadow-sm flex items-center gap-2 transition-colors">
+                    <i class="fa-solid fa-file-lines text-zinc-500"></i>
+                    <span>Exporter en HTML</span>
+                </button>
+                <button onclick="exportReport('pdf')" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-semibold border border-red-200 rounded-lg shadow-sm flex items-center gap-2 transition-colors">
+                    <i class="fa-solid fa-file-pdf text-red-600"></i>
+                    <span>Exporter en PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Cartes des métriques globales -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+                <span class="text-zinc-500 text-xs font-bold uppercase tracking-wider">Volume de requêtes</span>
+                <p class="text-3xl font-black text-zinc-900 mt-2" id="statTotalRequests">0</p>
+            </div>
+            <div class="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+                <span class="text-zinc-500 text-xs font-bold uppercase tracking-wider">Adresses IP uniques</span>
+                <p class="text-3xl font-black text-zinc-900 mt-2" id="statUniqueIps">0</p>
+            </div>
+            <div class="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+                <span class="text-zinc-500 text-xs font-bold uppercase tracking-wider">Anomalies détectées</span>
+                <p class="text-3xl font-black mt-2" id="statTotalAlerts">0</p>
+            </div>
+        </div>
+
+        <!-- Tableau des alertes de sécurité avec filtres -->
+        <section class="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900">Alertes de sécurité</h3>
+                    <p class="text-xs text-zinc-500">Comportements suspects et signatures d'attaque identifiées</p>
+                </div>
+
+                <!-- Filtres dynamique en JavaScript -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Filtrer par IP, chemin, type..." class="bg-white border border-zinc-300 text-sm rounded-lg px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 w-64">
+
+                    <select id="severityFilter" onchange="applyFilters()" class="bg-white border border-zinc-300 text-sm rounded-lg px-3 py-2 text-zinc-900 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900">
+                        <option value="ALL">Toutes les sévérités</option>
+                        <option value="CRITICAL">Critique</option>
+                        <option value="HIGH">Élevée</option>
+                        <option value="WARNING">Avertissement</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-zinc-800">
+                    <thead class="bg-zinc-50 text-xs text-zinc-500 uppercase border-b border-zinc-200">
+                        <tr>
+                            <th class="p-3">Ligne</th>
+                            <th class="p-3">Type de détection</th>
+                            <th class="p-3">Niveau de sévérité</th>
+                            <th class="p-3">Adresse IP source</th>
+                            <th class="p-3">Cible / Détails de la requête</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTableBody" class="divide-y divide-zinc-200">
+                        <!-- Contenu injecté via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Métriques secondaires : Top IPs et Réponses HTTP -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Top 10 IP -->
+            <section class="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-zinc-900 mb-1">Top 10 des adresses IP</h3>
+                <p class="text-xs text-zinc-500 mb-4">Adresses ayant généré le plus grand volume d'activité</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-zinc-800">
+                        <thead class="bg-zinc-50 text-xs text-zinc-500 uppercase border-b border-zinc-200">
+                            <tr>
+                                <th class="p-3">Adresse IP</th>
+                                <th class="p-3 text-right">Nombre de requêtes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topIpsBody" class="divide-y divide-zinc-200"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Répartition HTTP -->
+            <section class="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-zinc-900 mb-1">Répartition des codes d'état HTTP</h3>
+                <p class="text-xs text-zinc-500 mb-4">Distribution des réponses du serveur web</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-zinc-800">
+                        <thead class="bg-zinc-50 text-xs text-zinc-500 uppercase border-b border-zinc-200">
+                            <tr>
+                                <th class="p-3">Code HTTP</th>
+                                <th class="p-3 text-right">Occurrences</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statusBody" class="divide-y divide-zinc-200"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentAnalysisData = null;
+
+    // Gestion du sélecteur et glisser-déposer de fichier
+    const dropzone = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('logFile');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            fileNameDisplay.textContent = `Fichier sélectionné : ${fileInput.files[0].name}`;
+        }
+    });
+
+    // Envoi AJAX du fichier
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!fileInput.files.length) return;
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        document.getElementById('loader').classList.remove('hidden');
+        document.getElementById('resultsSection').classList.add('hidden');
+
+        try {
+            const response = await fetch("{{ url_for('logs.handle_log_upload') }}", {
+                method: 'POST',
+                body: formData
+            });
+
+            const res = await response.json();
+            document.getElementById('loader').classList.add('hidden');
+
+            if (res.success) {
+                currentAnalysisData = res.analysis;
+                renderDashboard(res.analysis);
+                document.getElementById('resultsSection').classList.remove('hidden');
+            } else {
+                alert('Erreur d\'analyse : ' + res.error);
+            }
+        } catch (err) {
+            document.getElementById('loader').classList.add('hidden');
+            alert("Une erreur est survenue lors du transfert du fichier.");
+        }
+    });
+
+    // Rendu global des résultats
+    function renderDashboard(data) {
+        document.getElementById('statTotalRequests').textContent = data.summary.total_requests.toLocaleString();
+        document.getElementById('statUniqueIps').textContent = data.summary.unique_ips.toLocaleString();
+        
+        const alertCountElem = document.getElementById('statTotalAlerts');
+        alertCountElem.textContent = data.summary.total_alerts.toLocaleString();
+        
+        // Vert pour 0 alerte, Rouge si présence d'alertes
+        if (data.summary.total_alerts > 0) {
+            alertCountElem.className = "text-3xl font-black mt-2 text-red-600";
+        } else {
+            alertCountElem.className = "text-3xl font-black mt-2 text-emerald-600";
+        }
+
+        renderTopIps(data.top_ips);
+        renderHttpStatus(data.status_distribution);
+        applyFilters();
+    }
+
+    // Filtre dynamique des alertes
+    function applyFilters() {
+        if (!currentAnalysisData) return;
+
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const severityFilter = document.getElementById('severityFilter').value;
+
+        const filteredAlerts = currentAnalysisData.alerts.filter(alert => {
+            const matchesSeverity = (severityFilter === 'ALL') || (alert.severity === severityFilter);
+            
+            const detailsStr = (alert.path || alert.details || '').toLowerCase();
+            const ipStr = (alert.ip || '').toLowerCase();
+            const typeStr = (alert.type || '').toLowerCase();
+
+            const matchesSearch = ipStr.includes(searchTerm) || detailsStr.includes(searchTerm) || typeStr.includes(searchTerm);
+
+            return matchesSeverity && matchesSearch;
+        });
+
+        renderAlertsTable(filteredAlerts);
+    }
+
+    // Construction du tableau d'alertes
+    function renderAlertsTable(alerts) {
+        const tbody = document.getElementById('alertsTableBody');
+        tbody.innerHTML = '';
+
+        if (alerts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-zinc-500 font-medium">Aucune alerte correspondant aux critères.</td></tr>`;
+            return;
+        }
+
+        alerts.forEach(alert => {
+            const line = alert.line || 'N/A';
+            const details = alert.path || alert.details || 'Aucune information complémentaire';
+            
+            // Contrastes forts pour la sévérité (Rouge / Orange / Jaune)
+            let badgeClass = 'bg-amber-50 text-amber-800 border-amber-300';
+            let labelSeverity = 'Avertissement';
+
+            if (alert.severity === 'CRITICAL') {
+                badgeClass = 'bg-red-50 text-red-800 border-red-300 font-bold';
+                labelSeverity = 'Critique';
+            } else if (alert.severity === 'HIGH') {
+                badgeClass = 'bg-orange-50 text-orange-800 border-orange-300';
+                labelSeverity = 'Élevée';
+            }
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-zinc-50 transition-colors">
+                    <td class="p-3 text-zinc-500 font-mono text-xs">${line}</td>
+                    <td class="p-3 font-semibold text-zinc-900">${alert.type}</td>
+                    <td class="p-3">
+                        <span class="px-2.5 py-1 text-xs font-medium border rounded-md ${badgeClass}">
+                            ${labelSeverity}
+                        </span>
+                    </td>
+                    <td class="p-3 font-mono text-xs font-bold text-zinc-900">${alert.ip}</td>
+                    <td class="p-3 font-mono text-xs text-zinc-600 max-w-md truncate" title="${details}">${details}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // Tableau des Top IP
+    function renderTopIps(topIps) {
+        const tbody = document.getElementById('topIpsBody');
+        tbody.innerHTML = '';
+        Object.entries(topIps).forEach(([ip, count]) => {
+            tbody.innerHTML += `
+                <tr class="hover:bg-zinc-50">
+                    <td class="p-3 font-mono text-xs font-bold text-zinc-900">${ip}</td>
+                    <td class="p-3 text-right font-semibold text-zinc-700">${count.toLocaleString()}</td>
+                </tr>`;
+        });
+    }
+
+    // Tableau de répartition des codes HTTP
+    function renderHttpStatus(statusDist) {
+        const tbody = document.getElementById('statusBody');
+        tbody.innerHTML = '';
+        Object.entries(statusDist).forEach(([code, count]) => {
+            let statusBadge = "bg-zinc-100 text-zinc-800 border-zinc-200";
+            const codeInt = parseInt(code, 10);
+            
+            if (codeInt >= 200 && codeInt < 300) statusBadge = "bg-emerald-50 text-emerald-800 border-emerald-200";
+            else if (codeInt >= 400 && codeInt < 500) statusBadge = "bg-amber-50 text-amber-800 border-amber-200";
+            else if (codeInt >= 500) statusBadge = "bg-red-50 text-red-800 border-red-200";
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-zinc-50">
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 font-mono text-xs font-bold border rounded ${statusBadge}">
+                            Statut ${code}
+                        </span>
+                    </td>
+                    <td class="p-3 text-right font-semibold text-zinc-700">${count.toLocaleString()}</td>
+                </tr>`;
+        });
+    }
+
+    // Export des rapports HTML / PDF
+    async function exportReport(format) {
+        if (!currentAnalysisData) return;
+
+        try {
+            const response = await fetch(`/logs/export/${format}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentAnalysisData)
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                alert('Erreur d\'exportation : ' + (err.error || 'Impossible de générer le fichier.'));
+                return;
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rapport_analyse_log.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (err) {
+            alert("Une erreur s'est produite lors du téléchargement du rapport.");
+        }
+    }
+</script>
+{% endblock %}

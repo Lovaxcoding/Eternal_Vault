@@ -32,10 +32,12 @@ def create_app():
     from app.modules.network.routes import network_bp
     from app.modules.geoip.routes import geoip_bp
     from app.modules.exif.routes import exif_bp
+    from app.modules.logs.routes import logs_bp
 
     # Enregistrement des Blueprints
     app.register_blueprint(network_bp)
     app.register_blueprint(geoip_bp)
     app.register_blueprint(exif_bp)
+    app.register_blueprint(logs_bp)
 
     return app
