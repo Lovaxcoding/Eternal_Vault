@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>{% block title %}Eternal Vault{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Application CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="app-body">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="{{ url_for('home') }}" class="sidebar-brand">
+                <span class="sidebar-logo"><i class="fa-solid fa-shield-halved"></i></span>
+                <span class="sidebar-brand-name">Eternal<span>Vault</span></span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navigation principale">
+            <ul>
+                <li>
+                    <a href="{{ url_for('home') }}" class="nav-item active">
+                        <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+                        <span>Vue d'ensemble</span>
+                    </a>
+                </li>
+
+                <li class="nav-section-title">Network & OSINT</li>
+                <li>
+                    <a href="{{ url_for('network.calculator') }}" class="nav-item">
+                        <span class="nav-icon"><i class="fa-solid fa-network-wired"></i></span>
+                        <span>Calculateur IP</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item disabled" aria-disabled="true">
+                        <span class="nav-icon"><i class="fa-solid fa-location-dot"></i></span>
+                        <span>GeoIP Mapper</span>
+                        <span class="nav-soon">SOON</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item disabled" aria-disabled="true">
+                        <span class="nav-icon"><i class="fa-solid fa-image"></i></span>
+                        <span>Extracteur EXIF</span>
+                        <span class="nav-soon">SOON</span>
+                    </a>
+                </li>
+
+                <li class="nav-section-title">Analyse & Logs</li>
+                <li>
+                    <a href="#" class="nav-item disabled" aria-disabled="true">
+                        <span class="nav-icon"><i class="fa-solid fa-terminal"></i></span>
+                        <span>Mini-SIEM</span>
+                        <span class="nav-soon">SOON</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-status">
+                <span class="sidebar-status-dot"></span>
+                <div>
+                    <strong>Vault opérationnel</strong>
+                    <small>Tous les systèmes fonctionnent</small>
+                </div>
+            </div>
+
+            <a href="{{ url_for('landing') }}" class="exit-btn">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Retour à l'accueil</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <span class="topbar-kicker">ETERNAL VAULT</span>
+                <h1>{% block page_title %}Vue d'ensemble{% endblock %}</h1>
+            </div>
+
+            <div class="topbar-right">
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    <span>Opérationnel</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="content-area">
+            {% block content %}{% endblock %}
+        </section>
+
+        <footer class="app-footer">
+            <span>Eternal Vault</span>
+            <span>Security Intelligence Toolkit · 2026</span>
+        </footer>
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

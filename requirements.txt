@@ -1,0 +1,17 @@
+# Framework Web
+Flask==3.0.2
+
+# Manipulation d'images & Métadonnées EXIF
+Pillow==10.2.0
+exifread==3.0.0
+
+# Géolocalisation & Cartographie
+geopandas==0.14.3
+folium==0.16.0
+requests==2.31.0
+
+# Traitement de données & Logs (Mini-SIEM)
+pandas==2.2.1
+
+# Utilitaires de développement
+python-dotenv==1.0.1

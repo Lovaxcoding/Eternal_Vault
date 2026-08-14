@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Eternal Vault — Security Intelligence</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    >
+
+    <!-- Main CSS -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body class="landing-body">
+
+    <!-- Decorative background -->
+    <div class="landing-grid"></div>
+    <div class="landing-glow landing-glow-blue"></div>
+    <div class="landing-glow landing-glow-orange"></div>
+
+
+    <main class="landing-container">
+
+        <!-- =========================
+             NAVBAR
+        ========================== -->
+
+        <header class="landing-navbar">
+
+            <a href="#" class="landing-brand">
+
+                <span class="landing-brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </span>
+
+                <span class="landing-brand-name">
+                    Eternal<span>Vault</span>
+                </span>
+
+            </a>
+
+
+            <div class="landing-status">
+
+                <span class="landing-status-dot"></span>
+
+                <span>Systems operational</span>
+
+            </div>
+
+        </header>
+
+
+        <!-- =========================
+             HERO
+        ========================== -->
+
+        <section class="landing-hero">
+
+            <!-- Left -->
+            <div class="landing-hero-content">
+
+                <div class="landing-eyebrow">
+
+                    <span class="landing-eyebrow-icon">
+                        <i class="fa-solid fa-lock"></i>
+                    </span>
+
+                    BLUE TEAM · NETWORK · OSINT
+
+                </div>
+
+
+                <h1>
+                    Security intelligence,
+                    <span>without the complexity.</span>
+                </h1>
+
+
+                <p class="landing-description">
+                    Eternal Vault rassemble vos outils essentiels d'analyse
+                    réseau, de sécurité et d'OSINT dans une interface
+                    unique, claire et efficace.
+                </p>
+
+
+                <!-- CTA -->
+
+                <div class="landing-actions">
+
+                    <a
+                        href="{{ url_for('home') }}"
+                        class="landing-btn landing-btn-primary"
+                    >
+
+                        <span>
+                            Entrer dans le Vault
+                        </span>
+
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </a>
+
+
+                    <a
+                        href="#features"
+                        class="landing-btn landing-btn-secondary"
+                    >
+
+                        Découvrir les outils
+
+                    </a>
+
+                </div>
+
+
+                <!-- Trust indicators -->
+
+                <div class="landing-trust">
+
+                    <div class="landing-trust-item">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                        Analyse réseau
+
+                    </div>
+
+
+                    <div class="landing-trust-item">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                        OSINT
+
+                    </div>
+
+
+                    <div class="landing-trust-item">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                        Blue Team
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Right visual -->
+
+            <div class="landing-visual">
+
+                <div class="vault-card">
+
+                    <!-- Card header -->
+
+                    <div class="vault-card-header">
+
+                        <div>
+
+                            <span class="vault-label">
+                                ETERNAL VAULT
+                            </span>
+
+                            <h2>
+                                Security Overview
+                            </h2>
+
+                        </div>
+
+
+                        <div class="vault-secure">
+
+                            <span></span>
+
+                            SECURE
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Main shield -->
+
+                    <div class="vault-network">
+
+                        <div class="network-ring ring-one"></div>
+                        <div class="network-ring ring-two"></div>
+                        <div class="network-ring ring-three"></div>
+
+
+                        <!-- Connection lines -->
+
+                        <span class="network-line line-one"></span>
+                        <span class="network-line line-two"></span>
+                        <span class="network-line line-three"></span>
+                        <span class="network-line line-four"></span>
+
+
+                        <!-- Central node -->
+
+                        <div class="network-center">
+
+                            <i class="fa-solid fa-shield-halved"></i>
+
+                        </div>
+
+
+                        <!-- Nodes -->
+
+                        <div class="network-node node-top">
+
+                            <i class="fa-solid fa-server"></i>
+
+                        </div>
+
+
+                        <div class="network-node node-right">
+
+                            <i class="fa-solid fa-globe"></i>
+
+                        </div>
+
+
+                        <div class="network-node node-bottom">
+
+                            <i class="fa-solid fa-database"></i>
+
+                        </div>
+
+
+                        <div class="network-node node-left">
+
+                            <i class="fa-solid fa-terminal"></i>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Stats -->
+
+                    <div class="vault-stats">
+
+                        <div class="vault-stat">
+
+                            <span>NETWORK</span>
+
+                            <strong>
+                                <i class="fa-solid fa-circle"></i>
+                                Ready
+                            </strong>
+
+                        </div>
+
+
+                        <div class="vault-stat">
+
+                            <span>OSINT</span>
+
+                            <strong>
+                                <i class="fa-solid fa-circle"></i>
+                                Active
+                            </strong>
+
+                        </div>
+
+
+                        <div class="vault-stat">
+
+                            <span>SIEM</span>
+
+                            <strong>
+                                <i class="fa-solid fa-circle"></i>
+                                Ready
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Floating security card -->
+
+                <div class="floating-security-card">
+
+                    <div class="floating-icon">
+                        <i class="fa-solid fa-shield-check"></i>
+                    </div>
+
+                    <div>
+
+                        <span>
+                            SECURITY STATUS
+                        </span>
+
+                        <strong>
+                            Environment protected
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             FEATURES
+        ========================== -->
+
+        <section
+            class="landing-features-section"
+            id="features"
+        >
+
+            <div class="landing-section-heading">
+
+                <div>
+
+                    <span>
+                        TOOLKIT
+                    </span>
+
+                    <h2>
+                        Your security toolbox.
+                    </h2>
+
+                </div>
+
+
+                <p>
+                    Les outils essentiels réunis dans une expérience
+                    simple, rapide et cohérente.
+                </p>
+
+            </div>
+
+
+            <div class="landing-feature-grid">
+
+
+                <!-- IP -->
+
+                <article class="landing-feature-card">
+
+                    <div class="feature-icon feature-blue">
+
+                        <i class="fa-solid fa-network-wired"></i>
+
+                    </div>
+
+
+                    <div class="feature-card-content">
+
+                        <span class="feature-category">
+                            NETWORK
+                        </span>
+
+                        <h3>
+                            IP Calculator
+                        </h3>
+
+                        <p>
+                            Calculez et analysez rapidement vos
+                            réseaux, sous-réseaux, CIDR et plages IP.
+                        </p>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-arrow-up-right-from-square feature-arrow"></i>
+
+                </article>
+
+
+                <!-- GEOIP -->
+
+                <article class="landing-feature-card">
+
+                    <div class="feature-icon feature-green">
+
+                        <i class="fa-solid fa-location-dot"></i>
+
+                    </div>
+
+
+                    <div class="feature-card-content">
+
+                        <span class="feature-category">
+                            OSINT
+                        </span>
+
+                        <h3>
+                            GeoIP & EXIF
+                        </h3>
+
+                        <p>
+                            Explorez les informations géographiques
+                            et les métadonnées disponibles.
+                        </p>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-arrow-up-right-from-square feature-arrow"></i>
+
+                </article>
+
+
+                <!-- SIEM -->
+
+                <article class="landing-feature-card">
+
+                    <div class="feature-icon feature-orange">
+
+                        <i class="fa-solid fa-terminal"></i>
+
+                    </div>
+
+
+                    <div class="feature-card-content">
+
+                        <span class="feature-category">
+                            BLUE TEAM
+                        </span>
+
+                        <h3>
+                            SIEM Log Filter
+                        </h3>
+
+                        <p>
+                            Filtrez et examinez vos logs pour
+                            identifier rapidement les événements importants.
+                        </p>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-arrow-up-right-from-square feature-arrow"></i>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             SECURITY BANNER
+        ========================== -->
+
+        <section class="landing-security-banner">
+
+            <div class="security-banner-icon">
+
+                <i class="fa-solid fa-shield-halved"></i>
+
+            </div>
+
+
+            <div class="security-banner-content">
+
+                <span>
+                    BUILT FOR SECURITY
+                </span>
+
+                <strong>
+                    Une interface pensée pour les analystes.
+                </strong>
+
+            </div>
+
+
+            <div class="security-banner-arrow">
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             FOOTER
+        ========================== -->
+
+        <footer class="landing-footer">
+
+            <div class="landing-brand">
+
+                <span class="landing-brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </span>
+
+                <span class="landing-brand-name">
+                    Eternal<span>Vault</span>
+                </span>
+
+            </div>
+
+
+            <span>
+                Security Intelligence Toolkit
+            </span>
+
+
+            <span>
+                © 2026 Eternal Vault
+            </span>
+
+        </footer>
+
+    </main>
+
+</body>
+</html>

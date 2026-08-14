@@ -1,0 +1,30 @@
+eternal_vault/
+├── .env                  # Variables d'environnement
+├── .gitignore            # Fichiers à ignorer par Git
+├── config.py             # Configuration de Flask
+├── requirements.txt      # Liste des dépendances Python
+├── run.py                # Point d'entrée pour démarrer le serveur
+└── app/
+    ├── __init__.py       # Initialisation de l'application Flask
+    ├── static/           # Fichiers statiques (CSS, JS, uploads)
+    │   ├── css/
+    │   │   └── style.css
+    │   ├── js/
+    │   └── uploads/
+    ├── templates/        # Modèles HTML avec Jinja2
+    │   ├── base.html
+    │   └── index.html
+    └── modules/          # Architecture modulaire (Blueprints)
+        ├── __init__.py
+        ├── exif/         # Module Extraction EXIF & Carte
+        │   ├── routes.py
+        │   └── utils.py
+        ├── geoip/        # Module Localisation IP & Geopandas
+        │   ├── routes.py
+        │   └── utils.py
+        ├── logs/         # Module Mini-SIEM & Filtres
+        │   ├── routes.py
+        │   └── utils.py
+        └── network/      # Module Calculateur IP & Masque
+            ├── routes.py
+            └── utils.py

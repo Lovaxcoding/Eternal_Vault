@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil — Eternal Vault{% endblock %}
+
+{% block page_title %}Vue d'ensemble{% endblock %}
+
+{% block content %}
+<!-- =========================================================
+     WELCOME
+========================================================== -->
+<section class="dashboard-welcome">
+    <div class="welcome-content">
+        <div class="welcome-kicker">
+            <span class="welcome-kicker-dot"></span>
+            SECURITY INTELLIGENCE TOOLKIT
+        </div>
+        <h2>Bienvenue dans <span>Eternal Vault.</span></h2>
+        <p>Votre espace central pour l'analyse réseau, l'OSINT et les opérations Blue Team.</p>
+    </div>
+
+    <div class="welcome-visual">
+        <div class="welcome-shield">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="welcome-ring ring-a"></div>
+        <div class="welcome-ring ring-b"></div>
+    </div>
+</section>
+
+<!-- =========================================================
+     QUICK STATS
+========================================================== -->
+<section class="dashboard-stats">
+    <div class="dashboard-stat">
+        <div class="dashboard-stat-icon blue">
+            <i class="fa-solid fa-toolbox"></i>
+        </div>
+        <div>
+            <span>OUTILS DISPONIBLES</span>
+            <strong>1</strong>
+        </div>
+    </div>
+
+    <div class="dashboard-stat">
+        <div class="dashboard-stat-icon green">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+            <span>SYSTÈME</span>
+            <strong>Opérationnel</strong>
+        </div>
+    </div>
+
+    <div class="dashboard-stat">
+        <div class="dashboard-stat-icon orange">
+            <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <div>
+            <span>MODULES</span>
+            <strong>4</strong>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================
+     TOOLS
+========================================================== -->
+<div class="dashboard-section-header">
+    <div>
+        <span class="dashboard-section-kicker">TOOLKIT</span>
+        <h2>Outils de sécurité</h2>
+    </div>
+    <span class="module-count">1 actif · 3 à venir</span>
+</div>
+
+<div class="modules-grid">
+    <!-- =====================================================
+         IP CALCULATOR
+    ====================================================== -->
+    <article class="card tool-card active-tool">
+        <div class="card-top">
+            <div class="card-icon blue">
+                <i class="fa-solid fa-network-wired"></i>
+            </div>
+            <span class="badge">Disponible</span>
+        </div>
+
+        <div class="card-body">
+            <span class="tool-category">NETWORK</span>
+            <h3>Calculateur de Masque IP</h3>
+            <p>Calculez rapidement les sous-réseaux, plages d'hôtes, adresses réseau et adresses de broadcast.</p>
+        </div>
+
+        <div class="card-footer">
+            <span>Module 01</span>
+            <a href="{{ url_for('network.calculator') }}" class="tool-link">
+                Ouvrir
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </article>
+
+    <!-- =====================================================
+         GEOIP
+    ====================================================== -->
+    <article class="card tool-card">
+        <div class="card-top">
+            <div class="card-icon green">
+                <i class="fa-solid fa-globe"></i>
+            </div>
+            <span class="badge badge-muted">À venir</span>
+        </div>
+
+        <div class="card-body">
+            <span class="tool-category">OSINT</span>
+            <h3>GeoIP Mapper</h3>
+            <p>Localisez les adresses IP et visualisez les informations géographiques sur une carte interactive.</p>
+        </div>
+
+        <div class="card-footer">
+            <span>Module 02</span>
+            <span class="tool-disabled">Bientôt disponible</span>
+        </div>
+    </article>
+
+    <!-- =====================================================
+         EXIF
+    ====================================================== -->
+    <article class="card tool-card">
+        <div class="card-top">
+            <div class="card-icon orange">
+                <i class="fa-solid fa-image"></i>
+            </div>
+            <span class="badge badge-muted">À venir</span>
+        </div>
+
+        <div class="card-body">
+            <span class="tool-category">OSINT</span>
+            <h3>Extracteur EXIF</h3>
+            <p>Inspectez les métadonnées des images et identifiez les informations GPS lorsqu'elles sont disponibles.</p>
+        </div>
+
+        <div class="card-footer">
+            <span>Module 03</span>
+            <span class="tool-disabled">Bientôt disponible</span>
+        </div>
+    </article>
+
+    <!-- =====================================================
+         SIEM
+    ====================================================== -->
+    <article class="card tool-card">
+        <div class="card-top">
+            <div class="card-icon purple">
+                <i class="fa-solid fa-terminal"></i>
+            </div>
+            <span class="badge badge-muted">À venir</span>
+        </div>
+
+        <div class="card-body">
+            <span class="tool-category">BLUE TEAM</span>
+            <h3>Analyseur de Logs SIEM</h3>
+            <p>Importez, filtrez et analysez vos journaux d'événements réseau et système depuis une interface centralisée.</p>
+        </div>
+
+        <div class="card-footer">
+            <span>Module 04</span>
+            <span class="tool-disabled">Bientôt disponible</span>
+        </div>
+    </article>
+</div>
+
+<!-- =========================================================
+     SECURITY NOTE
+========================================================== -->
+<section class="dashboard-security-note">
+    <div class="security-note-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+    </div>
+
+    <div>
+        <span>ETERNAL VAULT</span>
+        <strong>Analysez. Comprenez. Sécurisez.</strong>
+        <p>Une boîte à outils pensée pour simplifier les opérations de sécurité quotidiennes.</p>
+    </div>
+</section>
+{% endblock %}
